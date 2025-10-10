@@ -1,0 +1,629 @@
+/* Delegation Widget Styles */
+.delegation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Keychain Integration Styles */
+.keychain-status {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding: 5px 10px;
+    background: rgba(40, 167, 69, 0.2);
+    border-radius: 15px;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.keychain-notice {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    animation: slideDown 0.3s ease-out;
+}
+
+.keychain-notice a {
+    color: #ffc107;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.keychain-notice a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delegation-widget {
+    background: linear-gradient(135deg, #1a2733 0%, #2d4a5a 100%);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.delegation-header {
+    display: flex;
+    align-items: center;
+    padding: 25px 30px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.delegation-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    box-shadow: 0 4px 15px rgba(25, 230, 140, 0.3);
+}
+
+.delegation-icon i {
+    color: white;
+    font-size: 20px;
+}
+
+.delegation-header h3 {
+    color: white;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    flex: 1;
+}
+
+.delegation-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.delegation-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: scale(1.1);
+}
+
+.delegation-content {
+    padding: 30px;
+}
+
+.delegation-step {
+    display: none;
+}
+
+.delegation-step.active {
+    display: block;
+    animation: stepIn 0.3s ease-out;
+}
+
+@keyframes stepIn {
+    from { 
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.step-number {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    margin-right: 15px;
+    font-size: 14px;
+}
+
+.step-header h4 {
+    color: white;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #19e68c;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(25, 230, 140, 0.1);
+}
+
+.input-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.input-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 5px;
+}
+
+.amount-input-container {
+    position: relative;
+}
+
+.amount-suggestions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.amount-btn {
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.amount-btn:hover {
+    background: rgba(25, 230, 140, 0.1);
+    border-color: #19e68c;
+    color: #19e68c;
+}
+
+.delegation-info {
+    margin: 25px 0;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-icon {
+    font-size: 20px;
+    margin-right: 12px;
+    margin-top: 2px;
+}
+
+.info-content h5 {
+    color: white;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.info-content p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-size: 13px;
+}
+
+.method-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.method-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.method-card:hover {
+    border-color: rgba(25, 230, 140, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.method-card.selected {
+    border-color: #19e68c;
+    background: rgba(25, 230, 140, 0.1);
+    box-shadow: 0 0 20px rgba(25, 230, 140, 0.2);
+}
+
+.method-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.method-icon img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.method-icon i {
+    color: #19e68c;
+    font-size: 20px;
+}
+
+.method-card h5 {
+    color: white;
+    margin: 0 0 5px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.method-card p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.method-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.completion-content {
+    text-align: center;
+}
+
+.completion-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 30px rgba(25, 230, 140, 0.3);
+}
+
+.completion-icon i {
+    color: white;
+    font-size: 24px;
+}
+
+.completion-content h5 {
+    color: white;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.completion-content p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 25px 0;
+    line-height: 1.5;
+}
+
+.delegation-summary {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.summary-row span:first-child {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.summary-row span:last-child {
+    color: white;
+    font-weight: 600;
+}
+
+.completion-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.completion-note i {
+    color: #ffc107;
+}
+
+.completion-note span {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+}
+
+.delegation-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.delegation-actions button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    color: white;
+    box-shadow: 0 4px 15px rgba(25, 230, 140, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 230, 140, 0.4);
+}
+
+.btn-primary:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.delegation-footer {
+    padding: 20px 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: #19e68c;
+}
+
+.footer-links span {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+}
+
+/* Delegation Widget Button - Circular style similar to refresh button */
+#delegation-widget-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    background: #22343a;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 2;
+}
+
+#delegation-widget-btn:hover {
+    background: #29404a;
+}
+
+#delegation-widget-btn svg {
+    transition: transform 0.2s;
+}
+
+#delegation-widget-btn:hover svg {
+    transform: scale(1.1);
+}
+
+/* Legacy delegation button styles for other contexts */
+.delegation-widget-btn {
+    background: linear-gradient(135deg, #19e68c, #16c772);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(25, 230, 140, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+    text-decoration: none;
+    width: 100%;
+    justify-content: center;
+    max-width: 200px;
+}
+
+.delegation-widget-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 230, 140, 0.4);
+}
+
+.delegation-widget-btn i {
+    font-size: 16px;
+}
+
+/* Special styling when inside burnpool card */
+.burnpool-card-content .delegation-widget-btn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 13px;
+    max-width: 180px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .delegation-widget {
+        width: 95%;
+        margin: 10px;
+        max-height: 95vh;
+    }
+    
+    .delegation-header,
+    .delegation-content,
+    .delegation-footer {
+        padding: 20px;
+    }
+    
+    .method-selection {
+        grid-template-columns: 1fr;
+    }
+    
+    .delegation-actions {
+        flex-direction: column;
+    }
+    
+    .amount-suggestions {
+        justify-content: center;
+    }
+}

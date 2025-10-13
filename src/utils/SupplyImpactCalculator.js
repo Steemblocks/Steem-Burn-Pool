@@ -85,7 +85,15 @@ export class SupplyImpactCalculator {
 
         // Calculate statistics
         totalBurnedInPeriod = filteredBurns.reduce((sum, item) => sum + item.burns, 0);
-        daysCovered = daysBack === 0 ? Math.max(1, filteredBurns.length) : daysBack;
+        
+        // UNIFIED LOGIC: For 'all' timeframe, calculate total days since project start for a true average.
+        if (daysBack === 0) {
+          const demoStartDate = new Date('2025-01-01');
+          const now = new Date();
+          daysCovered = Math.floor((now - demoStartDate) / (1000 * 60 * 60 * 24)) || 1;
+        } else {
+          daysCovered = daysBack;
+        }
       }
 
       // Calculate supply impact percentage

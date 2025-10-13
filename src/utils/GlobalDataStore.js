@@ -53,7 +53,12 @@ class GlobalDataStore {
 
   // Update specific data and notify subscribers
   static updateData(section, newData) {
-    this.data[section] = { ...this.data[section], ...newData, lastUpdated: Date.now() };
+    // Ensure nested objects are merged correctly
+    if (section === 'burnPoolData') {
+      this.data.burnPoolData = { ...this.data.burnPoolData, ...newData, lastUpdated: Date.now() };
+    } else {
+      this.data[section] = { ...this.data[section], ...newData, lastUpdated: Date.now() };
+    }
     this.notify();
     // Console log removed
   }
@@ -155,7 +160,8 @@ class GlobalDataStore {
           : burnData.totalBurned?.toString() || 'N/A',
         burnsToday: typeof burnData.burnsToday === 'number' 
           ? burnData.burnsToday.toFixed(2)
-          : burnData.burnsToday?.toString() || '0'
+          : burnData.burnsToday?.toString() || '0',
+        lastBurnTimestamp: burnData.lastBurnTimestamp || null // Ensure lastBurnTimestamp is passed
       };
 
       this.updateData('burnPoolData', formattedBurnData);

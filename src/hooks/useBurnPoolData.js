@@ -111,6 +111,7 @@ export const useBurnPoolData = () => {
     // Computed values
     totalBurned: data.burnPoolData.totalBurned || 'Loading...',
     burnsToday: data.burnPoolData.burnsToday || '0',
+    lastBurnTimestamp: data.burnPoolData.lastBurnTimestamp || null, // Expose lastBurnTimestamp
     steemPower: data.burnPoolData.steemPower || 'Loading...',
     profileImage: data.burnPoolData.profileImage,
     account: data.burnPoolData.account || 'dhaka.witness',

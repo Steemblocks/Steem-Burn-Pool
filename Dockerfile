@@ -9,10 +9,6 @@ RUN npm ci --silent
 # Copy source code
 COPY . .
 
-# Allow passing an API URL at build time
-ARG REACT_APP_API_URL
-ENV REACT_APP_API_URL=${REACT_APP_API_URL}
-
 # Build production bundle
 RUN npm run build
 

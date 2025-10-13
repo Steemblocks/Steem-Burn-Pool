@@ -3,9 +3,9 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Line } from 'react-chartjs-2';
 import useBurnPoolData from '../hooks/useBurnPoolData';
 import GlobalDataStore from '../utils/GlobalDataStore';
-import CacheManager from '../utils/CacheManager';
 import { fetchSteemData } from '../services/steemApi';
 import SupplyImpactCalculator from '../utils/SupplyImpactCalculator';
+import { formatTimeAgo } from '../utils/timeFormatter';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -13,7 +13,6 @@ const Analytics = () => {
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTimeframe, setActiveTimeframe] = useState('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [supplyDataLoaded, setSupplyDataLoaded] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [timeframeStats, setTimeframeStats] = useState({
@@ -28,7 +27,8 @@ const Analytics = () => {
   const {
     totalBurned,
     isLoadingBurnData,
-    fetchBurnData
+    fetchBurnData,
+    lastBurnTimestamp
   } = useBurnPoolData();
 
   // Enhanced data aggregation for better visualization
@@ -63,25 +63,23 @@ const Analytics = () => {
       monthlyData[monthKey].burns += item.burns;
     });
     
-    return Object.values(monthlyData).sort((a, b) => a.timestamp - b.timestamp);
+    const result = Object.values(monthlyData).sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Debug: Log the monthly data to see what's included
+    console.log('Monthly aggregated data for All Time view:', result.map(item => ({
+      date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
+      burns: item.burns
+    })));
+    
+    return result;
   };
 
-  const loadBurnHistory = useCallback(async (forceRefresh = false) => {
+  const loadBurnHistory = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      // If force refresh is requested, ensure fresh data is fetched first
-      if (forceRefresh) {
-        // Force refresh requested
-        try {
-          await fetchBurnData(true); // Fetch fresh data with force parameter
-        } catch (error) {
-          // Failed to fetch fresh burn data during force refresh
-        }
-      }
-      
       // Get burn pool data using GlobalDataStore
-      const burnPoolData = GlobalDataStore.getBurnPoolAnalyticsData(forceRefresh);
+      const burnPoolData = GlobalDataStore.getBurnPoolAnalyticsData();
       // Analytics using burn data from store
       
       // Check if we have detailed burn data, if not wait for it
@@ -111,16 +109,13 @@ const Analytics = () => {
         } else {
           // Show loading state or fetch data if needed
           // No burn data available, attempting to fetch
-          if (!forceRefresh) {
-            // Try to fetch data if not already forcing
-            try {
-              await fetchBurnData(false);
-              // Retry loading after fetch
-              setTimeout(() => loadBurnHistory(false), 1000);
-              return;
-            } catch (error) {
-              // Failed to fetch burn data
-            }
+          try {
+            await fetchBurnData(false);
+            // Retry loading after fetch
+            setTimeout(() => loadBurnHistory(), 1000);
+            return;
+          } catch (error) {
+            // Failed to fetch burn data
           }
           
           // Show no data state
@@ -159,6 +154,21 @@ const Analytics = () => {
         timeframeCutoff = now - (daysBack * 24 * 60 * 60);
       }
       
+      // Debug: Log current time and cutoff
+      console.log(`=== ${activeTimeframe.toUpperCase()} TIMEFRAME DEBUG ===`);
+      console.log('Current timestamp:', now, '=', new Date(now * 1000).toISOString());
+      console.log('Days back:', daysBack);
+      console.log('Cutoff timestamp:', timeframeCutoff, '=', timeframeCutoff > 0 ? new Date(timeframeCutoff * 1000).toISOString() : 'No cutoff (all data)');
+      
+      // Debug: Log all available dates in the raw data first
+      const allAvailableDates = Object.keys(burnPoolData.burnsByDay).map(ts => parseInt(ts)).sort((a, b) => a - b);
+      console.log('Total burn days available:', allAvailableDates.length);
+      if (allAvailableDates.length > 0) {
+        console.log('Earliest burn date:', new Date(allAvailableDates[0] * 1000).toISOString().split('T')[0]);
+        console.log('Latest burn date:', new Date(allAvailableDates[allAvailableDates.length - 1] * 1000).toISOString().split('T')[0]);
+        console.log('Last 5 burn dates:', allAvailableDates.slice(-5).map(ts => new Date(ts * 1000).toISOString().split('T')[0]));
+      }
+      
       // Get and sort burn data for the timeframe
       let filteredData = Object.keys(burnPoolData.burnsByDay)
         .map(timestamp => ({
@@ -168,13 +178,52 @@ const Analytics = () => {
         .filter(item => item.timestamp >= timeframeCutoff)
         .sort((a, b) => a.timestamp - b.timestamp);
 
+      // Debug: Log raw filtered data before aggregation
+      console.log('Raw filtered data count:', filteredData.length);
+      console.log('Date range in raw data:', 
+        filteredData.length > 0 ? {
+          earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
+          latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
+        } : 'No data');
+      
+      // Debug: Show last few days in raw filtered data
+      if (filteredData.length > 0) {
+        console.log('Last 3 raw filtered dates:', filteredData.slice(-3).map(item => ({
+          date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
+          burns: item.burns
+        })));
+      }
+        
       // Apply data aggregation based on timeframe for better visualization
       filteredData = aggregateDataForTimeframe(filteredData, activeTimeframe);
+      
+      // Debug: Log data after aggregation
+      console.log('After aggregation - data count:', filteredData.length);
+      if (filteredData.length > 0) {
+        console.log('After aggregation - date range:', {
+          earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
+          latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
+        });
+        console.log('Last 3 aggregated dates:', filteredData.slice(-3).map(item => ({
+          date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
+          burns: item.burns
+        })));
+      }
 
       // For specific timeframes, ensure we don't exceed the requested period
       if (daysBack > 0 && filteredData.length > daysBack) {
         // Take the most recent data points within the timeframe
-        filteredData = filteredData.slice(-Math.ceil(daysBack / (activeTimeframe === '90d' ? 7 : activeTimeframe === 'all' ? 30 : 1)));
+        const originalLength = filteredData.length;
+        const maxPoints = Math.ceil(daysBack / (activeTimeframe === '90d' ? 7 : activeTimeframe === 'all' ? 30 : 1));
+        filteredData = filteredData.slice(-maxPoints);
+        
+        console.log(`Data slicing: ${originalLength} -> ${filteredData.length} (max ${maxPoints} for ${activeTimeframe})`);
+        if (filteredData.length > 0) {
+          console.log('After slicing - final date range:', {
+            earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
+            latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
+          });
+        }
       }
 
       // Using real blockchain data
@@ -229,20 +278,6 @@ const Analytics = () => {
         }
       });
 
-      // Calculate average burn rate based on real data
-      const calculateAverageBurnRate = (data, timeframeDays) => {
-        if (data.length === 0) return [];
-        
-        const totalBurns = data.reduce((sum, item) => sum + item.burns, 0);
-        const actualDaysWithBurns = data.length;
-        const averagePerDay = totalBurns / Math.max(timeframeDays, actualDaysWithBurns);
-        
-        // Calculate average burn rate
-        
-        // Create average line for the full timeframe
-        return data.map(() => averagePerDay);
-      };
-
       const burnAmounts = filteredData.map(item => item.burns);
 
       // Calculate cumulative burns (running total of real data only)
@@ -252,10 +287,6 @@ const Analytics = () => {
         runningTotal += item.burns;
         return runningTotal;
       });
-
-      // Calculate average burn rate for the timeframe
-      const timeframeDays = daysBack || Math.max(filteredData.length, 30);
-      const averageAmounts = calculateAverageBurnRate(filteredData, timeframeDays);
 
       const datasets = [{
         label: 'Daily Burns',
@@ -311,24 +342,6 @@ const Analytics = () => {
           borderDash: [8, 4],
           borderCapStyle: 'round',
           order: 2
-        });
-      }
-
-      // Add average burn rate line (calculated)
-      if (averageAmounts.length > 0 && filteredData.length > 1) {
-        datasets.push({
-          label: 'Average Daily Rate',
-          data: averageAmounts,
-          borderColor: '#f59e0b',
-          backgroundColor: 'transparent',
-          fill: false,
-          tension: 0,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          borderWidth: 2,
-          borderDash: [12, 6],
-          borderCapStyle: 'round',
-          order: 3
         });
       }
 
@@ -417,8 +430,8 @@ const Analytics = () => {
         GlobalDataStore.updateSteemData(data);
         setSupplyDataLoaded(true);
       // Console log removed
-        // Force re-render to update calculations with live data
-        setIsRefreshing(prev => !prev);
+        // Trigger re-render to update calculations with live data
+        calculateTimeframeStats(); // Recalculate stats with new supply data
       }).catch(error => {
       // Console log removed
         setSupplyDataLoaded(true); // Set to true to prevent blocking
@@ -441,7 +454,6 @@ const Analytics = () => {
         setSupplyDataLoaded(true);
       // Console log removed
         // Trigger re-render to show updated calculations
-        setIsRefreshing(prev => !prev);
         calculateTimeframeStats(); // Recalculate stats with new supply data
       }
       
@@ -449,7 +461,7 @@ const Analytics = () => {
       if (GlobalDataStore.hasDetailedBurnData()) {
       // Console log removed
         // Only reload if we don't currently have chart data or if we're not loading
-        if (!chartData || (!isLoading && !isRefreshing)) {
+        if (!chartData || !isLoading) {
           loadBurnHistory();
           calculateTimeframeStats(); // Recalculate stats with new burn data
         }
@@ -464,85 +476,13 @@ const Analytics = () => {
     });
     
     return unsubscribe;
-  }, [supplyDataLoaded, loadBurnHistory, calculateTimeframeStats, chartData, isLoading, isRefreshing, totalBurned]);
+  }, [supplyDataLoaded, loadBurnHistory, calculateTimeframeStats, chartData, isLoading, totalBurned]);
 
   // Separate effect for timeframe-specific calculations
   useEffect(() => {
       // Console log removed
     calculateTimeframeStats();
   }, [activeTimeframe, totalBurned, calculateTimeframeStats]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    setIsLoading(true); // Also set chart loading state
-    
-    try {
-      // Console log removed
-      
-      // Clear localStorage cache for burn data
-      localStorage.removeItem('total-burned-steem-data');
-      
-      // Clear CacheManager caches
-      CacheManager.clearCache('burn-pool-data');
-      CacheManager.clearCache('steem-power-data');
-      
-      // Clear global window data
-      if (typeof window !== 'undefined') {
-        delete window.burnpoolCompleteData;
-      // Console log removed
-      }
-      
-      // Force fresh data fetch with proper sequencing
-      // Console log removed
-      await fetchBurnData(true); // Force parameter
-      
-      // Also refresh supply data
-      // Console log removed
-      try {
-        const freshSupplyData = await fetchSteemData();
-        GlobalDataStore.updateSteemData(freshSupplyData);
-      // Console log removed
-      } catch (error) {
-      // Console log removed
-      }
-      
-      // Wait a moment for data to be processed and stored
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Reload burn history with fresh data
-      // Console log removed
-      await loadBurnHistory(true); // Force refresh parameter
-      
-      // Recalculate stats with fresh data
-      calculateTimeframeStats();
-      
-      // Console log removed
-      
-    } catch (error) {
-      // Console log removed
-      
-      // Try to show fallback chart even if refresh failed
-      const fallbackTotal = totalBurned ? parseFloat(totalBurned) : 0;
-      if (fallbackTotal > 0) {
-        setChartData({
-          labels: ['Current Total'],
-          datasets: [{
-            label: 'STEEM Burned (Fallback)',
-            data: [fallbackTotal],
-            borderColor: '#ff6b6b',
-            backgroundColor: 'rgba(255, 107, 107, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 6,
-            pointHoverRadius: 8
-          }]
-        });
-      }
-    } finally {
-      setIsRefreshing(false);
-      setIsLoading(false);
-    }
-  };
 
   const handleTimeframeChange = (timeframe) => {
       // Console log removed
@@ -653,14 +593,19 @@ const Analytics = () => {
             ];
           },
           footer: function(context) {
-            if (context.length > 0) {
-              const date = new Date(context[0].parsed.x).toLocaleDateString();
-              const dailyValue = context.find(item => item.dataset.label.includes('Daily Burns'));
+            if (context.length > 0 && filteredData && filteredData.length > 0) {
+              const dataIndex = context[0].dataIndex;
+              const dataPoint = filteredData[dataIndex];
               
-              if (dailyValue && dailyValue.parsed.y > 0) {
-                return `� ${date} - Actual burn transaction recorded`;
-              } else {
-                return `📅 ${date} - No burns on this date`;
+              if (dataPoint && dataPoint.timestamp) {
+                const date = new Date(dataPoint.timestamp * 1000).toLocaleDateString();
+                const dailyValue = context.find(item => item.dataset.label.includes('Daily Burns'));
+                
+                if (dailyValue && dailyValue.parsed.y > 0) {
+                  return `🔥 ${date} - Actual burn transaction recorded`;
+                } else {
+                  return `📅 ${date} - No burns on this date`;
+                }
               }
             }
             return '';
@@ -774,14 +719,6 @@ const Analytics = () => {
             </div>
           </div>
           <div className="header-right">
-            <button 
-              className={`refresh-analytics-btn ${isRefreshing ? 'refreshing' : ''}`}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              title="Refresh Analytics Data"
-            >
-              <i className="fas fa-sync-alt"></i>
-            </button>
             <div className="time-selector">
               {['7D', '30D', '90D', 'All'].map((timeframe) => (
                 <button
@@ -799,16 +736,12 @@ const Analytics = () => {
         {/* Enhanced Stats Cards */}
         <div className="burn-stats-row">
           <div className="stat-card">
-            <div className="stat-icon"><i className="fas fa-calendar-alt"></i></div>
+            <div className="stat-icon"><i className="fas fa-clock"></i></div>
             <div className="stat-info">
               <span className="stat-value">
-                {isLoadingBurnData ? 'Loading...' : 
-                  filteredData?.length > 0 ? 
-                    `${filteredData.length} days` : 
-                    'No data'
-                }
+                {isLoadingBurnData ? 'Loading...' : formatTimeAgo(lastBurnTimestamp)}
               </span>
-              <span className="stat-label">REAL BURN DAYS</span>
+              <span className="stat-label">LAST BURN</span>
             </div>
           </div>
           <div className="stat-card">
@@ -821,7 +754,7 @@ const Analytics = () => {
                     'No data'
                 }
               </span>
-              <span className="stat-label">TOTAL BURNED (REAL)</span>
+              <span className="stat-label">TOTAL BURNED ({activeTimeframe.toUpperCase()})</span>
             </div>
           </div>
           <div className="stat-card">
@@ -895,7 +828,7 @@ const Analytics = () => {
           </div>
 
           <div className="modern-chart-container">
-            {(isLoading || isRefreshing) ? (
+            {isLoading ? (
               <div className="chart-overlay">
                 <div className="chart-loading-content">
                   <div className="loading-spinner-advanced">
@@ -904,8 +837,8 @@ const Analytics = () => {
                     <div className="spinner-ring"></div>
                   </div>
                   <div className="loading-text">
-                    <h4>{isRefreshing ? 'Refreshing Analytics Data' : 'Loading Burn History'}</h4>
-                    <p>{isRefreshing ? 'Fetching latest blockchain data...' : 'Processing burn transactions...'}</p>
+                    <h4>Loading Burn History</h4>
+                    <p>Processing burn transactions...</p>
                   </div>
                 </div>
               </div>
@@ -980,14 +913,6 @@ const Analytics = () => {
                     <h4>No Chart Data Available</h4>
                     <p>Unable to load burn analytics data. This could be due to network issues or no burn activity in the selected timeframe.</p>
                     <div className="empty-state-actions">
-                      <button 
-                        className="refresh-analytics-btn primary" 
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                      >
-                        <i className="fas fa-sync-alt"></i> 
-                        {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-                      </button>
                       <button 
                         className="timeframe-switch-btn"
                         onClick={() => handleTimeframeChange('all')}

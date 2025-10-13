@@ -128,4 +128,3 @@ For issues and support, please open an issue in the GitHub repository.
 ---
 
 **Delegation Pays, Supply Decays!** 🔥
-# steem-burn-pool

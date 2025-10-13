@@ -1,4 +1,4 @@
-# Builder stage
+# ---------- Builder Stage ----------
 FROM node:18-alpine AS builder
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY . .
 # Build production bundle
 RUN npm run build
 
-# Production stage
+# ---------- Production Stage ----------
 FROM nginx:alpine
 LABEL maintainer=""
 
@@ -22,8 +22,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy built files from builder
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy custom nginx config into container
-COPY deploy/default.conf /etc/nginx/conf.d/default.conf
+# ✅ FIX: Corrected config path
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Expose HTTP port
 EXPOSE 80

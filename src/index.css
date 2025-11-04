@@ -207,6 +207,10 @@
 
 /* Responsive Design for Tab Navigation */
 @media (max-width: 768px) {
+  .tab-navigation {
+    margin: clamp(16px, 2vw, 24px) 0; /* Match header spacing for symmetry on medium screens */
+  }
+  
   .tab-container {
     justify-content: stretch;
   }

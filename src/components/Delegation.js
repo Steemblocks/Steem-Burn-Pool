@@ -96,7 +96,7 @@ const Delegation = () => {
         // Direct call to Steem Keychain only
         window.steem_keychain.requestDelegation(
           keychainUsername || null, // username - use specified account or let user choose
-          'dhaka.witness',         // delegatee - Burn Pool Steem Power account
+          'global-steem',         // delegatee - Burn Pool Steem Power account
           formattedAmount,         // amount as string with 3 decimals
           'SP',                   // unit
           (response) => {         // callback function
@@ -142,7 +142,7 @@ const Delegation = () => {
     try {
       window.steem_keychain.requestDelegation(
         null,           // username
-        'dhaka.witness', // delegatee
+        'global-steem', // delegatee
         '1.000',        // amount
         'SP',           // unit
         (response) => {
@@ -213,14 +213,14 @@ const Delegation = () => {
       
       const delegationData = {
         delegator: steemloginUsername,
-        delegatee: 'dhaka.witness',
+        delegatee: 'global-steem',
         vesting_shares: `${vestsAmount.toFixed(6)} VESTS`,
       };
       
       const steemLoginUrl = `https://steemlogin.com/sign/delegate_vesting_shares?${new URLSearchParams(delegationData).toString()}`;
       window.open(steemLoginUrl, '_blank');
       
-      alert(`Opening SteemLogin in new tab. Please complete your delegation of ${steemloginAmount} SP (${vestsAmount.toFixed(6)} VESTS) to @dhaka.witness`);
+      alert(`Opening SteemLogin in new tab. Please complete your delegation of ${steemloginAmount} SP (${vestsAmount.toFixed(6)} VESTS) to @global-steem`);
       setSteemloginAmount('');
       setSteemloginUsername('');
     } catch (error) {

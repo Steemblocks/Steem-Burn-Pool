@@ -34,7 +34,7 @@ const Analytics = () => {
   // Enhanced data aggregation for better visualization
   const aggregateDataForTimeframe = (data, timeframe) => {
     if (timeframe === '7d' || timeframe === '30d') {
-      return data; // Show daily data
+      return data; // Show daily data (gaps already filled)
     }
     
     if (timeframe === '90d') {
@@ -47,7 +47,23 @@ const Analytics = () => {
         }
         weeklyData[weekStart].burns += item.burns;
       });
-      return Object.values(weeklyData).sort((a, b) => a.timestamp - b.timestamp);
+      
+      const result = Object.values(weeklyData).sort((a, b) => a.timestamp - b.timestamp);
+      
+      // Fill gaps to ensure continuous weekly data to today
+      if (result.length > 0) {
+        const today = Math.floor(Date.now() / 1000);
+        const thisWeekStart = today - (today % (7 * 24 * 60 * 60));
+        const lastWeek = result[result.length - 1].timestamp;
+        
+        let currentWeek = lastWeek + (7 * 24 * 60 * 60);
+        while (currentWeek <= thisWeekStart) {
+          result.push({ timestamp: currentWeek, burns: 0 });
+          currentWeek += (7 * 24 * 60 * 60);
+        }
+      }
+      
+      return result.sort((a, b) => a.timestamp - b.timestamp);
     }
     
     // For 'all' timeframe, group by month
@@ -65,13 +81,29 @@ const Analytics = () => {
     
     const result = Object.values(monthlyData).sort((a, b) => a.timestamp - b.timestamp);
     
+    // Fill gaps to ensure continuous monthly data to current month
+    if (result.length > 0) {
+      const today = new Date();
+      const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1).getTime() / 1000;
+      const lastMonth = result[result.length - 1].timestamp;
+      
+      let checkDate = new Date(lastMonth * 1000);
+      checkDate.setMonth(checkDate.getMonth() + 1); // Next month
+      
+      while (checkDate.getTime() / 1000 <= currentMonthStart) {
+        const monthStart = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1).getTime() / 1000;
+        result.push({ timestamp: monthStart, burns: 0 });
+        checkDate.setMonth(checkDate.getMonth() + 1);
+      }
+    }
+    
     // Debug: Log the monthly data to see what's included
     console.log('Monthly aggregated data for All Time view:', result.map(item => ({
       date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
       burns: item.burns
     })));
     
-    return result;
+    return result.sort((a, b) => a.timestamp - b.timestamp);
   };
 
   const loadBurnHistory = useCallback(async () => {
@@ -177,6 +209,29 @@ const Analytics = () => {
         }))
         .filter(item => item.timestamp >= timeframeCutoff)
         .sort((a, b) => a.timestamp - b.timestamp);
+      
+      // Fill gaps to ensure the graph extends to TODAY
+      if (filteredData.length > 0) {
+        const lastDataPoint = filteredData[filteredData.length - 1].timestamp;
+        const today = Math.floor(Date.now() / 1000);
+        const todayMidnight = today - (today % 86400); // Start of today
+        
+        // If the last data point is before today, add zero-value points to today
+        if (lastDataPoint < todayMidnight) {
+          console.log(`Filling gap from ${new Date(lastDataPoint * 1000).toISOString().split('T')[0]} to today`);
+          
+          // For 7d and 30d, fill daily
+          if (activeTimeframe === '7d' || activeTimeframe === '30d') {
+            let currentDay = lastDataPoint + 86400; // Next day after last data
+            while (currentDay <= todayMidnight) {
+              filteredData.push({ timestamp: currentDay, burns: 0 });
+              currentDay += 86400;
+            }
+          }
+          // For 90d, we'll let the weekly aggregation handle it
+          // For 'all', we'll let the monthly aggregation handle it
+        }
+      }
 
       // Debug: Log raw filtered data before aggregation
       console.log('Raw filtered data count:', filteredData.length);

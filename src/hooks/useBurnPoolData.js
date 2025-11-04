@@ -114,7 +114,7 @@ export const useBurnPoolData = () => {
     lastBurnTimestamp: data.burnPoolData.lastBurnTimestamp || null, // Expose lastBurnTimestamp
     steemPower: data.burnPoolData.steemPower || 'Loading...',
     profileImage: data.burnPoolData.profileImage,
-    account: data.burnPoolData.account || 'dhaka.witness',
+    account: data.burnPoolData.account || 'global-steem',
     contributorsCount: data.contributorsData.total || 0,
     contributors: data.contributorsData.contributors || []
   };

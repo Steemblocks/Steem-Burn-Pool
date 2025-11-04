@@ -14,7 +14,7 @@ class GlobalDataStore {
       burnsToday: null,
       steemPower: null,
       profileImage: null,
-      account: 'dhaka.witness',
+      account: 'global-steem',
       lastUpdated: null
     },
     contributorsData: {

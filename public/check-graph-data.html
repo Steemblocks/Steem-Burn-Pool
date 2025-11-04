@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Graph Data</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+        pre { background: #000; padding: 15px; overflow-x: auto; border: 1px solid #0f0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Graph Data Accuracy Checker</h1>
+    
+    <button onclick="checkCachedData()">Check Cached Data</button>
+    <button onclick="analyzeBurnsByDay()">Analyze burnsByDay Structure</button>
+    <button onclick="clearAllCache()">Clear All Cache</button>
+    
+    <pre id="output">Click a button to inspect graph data...</pre>
+
+    <script>
+        function checkCachedData() {
+            const output = document.getElementById('output');
+            let result = '=== CACHED DATA INSPECTION ===\n\n';
+            
+            // Check localStorage
+            const cachedData = localStorage.getItem('total-burned-steem-data');
+            if (cachedData) {
+                try {
+                    const parsed = JSON.parse(cachedData);
+                    result += '📦 LocalStorage Data:\n';
+                    result += `Total Burned: ${parsed.totalBurned}\n`;
+                    result += `Burns Today: ${parsed.burnsToday}\n`;
+                    result += `Last Burn Timestamp: ${parsed.lastBurnTimestamp}\n`;
+                    
+                    if (parsed.lastBurnTimestamp) {
+                        const lastBurnDate = new Date(parsed.lastBurnTimestamp * 1000);
+                        const now = new Date();
+                        const daysAgo = Math.floor((now - lastBurnDate) / (1000 * 60 * 60 * 24));
+                        result += `Last Burn Date: ${lastBurnDate.toLocaleString()}\n`;
+                        result += `Days Ago: ${daysAgo} days\n`;
+                    }
+                    
+                    // Check burnsByDay structure
+                    if (parsed.burnsByDay) {
+                        const dayCount = Object.keys(parsed.burnsByDay).length;
+                        result += `\nDaily Breakdown: ${dayCount} days with burns\n`;
+                        
+                        if (dayCount > 0) {
+                            const timestamps = Object.keys(parsed.burnsByDay).map(t => parseInt(t)).sort((a, b) => a - b);
+                            const earliest = new Date(timestamps[0] * 1000);
+                            const latest = new Date(timestamps[timestamps.length - 1] * 1000);
+                            
+                            result += `Date Range: ${earliest.toLocaleDateString()} to ${latest.toLocaleDateString()}\n`;
+                            
+                            // Calculate total from daily data
+                            let totalFromDays = 0;
+                            for (const timestamp in parsed.burnsByDay) {
+                                totalFromDays += parsed.burnsByDay[timestamp];
+                            }
+                            result += `Total from daily sum: ${totalFromDays.toFixed(2)} STEEM\n`;
+                            result += `Match with stored total: ${Math.abs(totalFromDays - parsed.totalBurned) < 0.01 ? '✅ YES' : '❌ NO'}\n`;
+                        }
+                    } else {
+                        result += '\n❌ No burnsByDay data found!\n';
+                    }
+                    
+                    const cacheAge = Math.floor((Date.now() - parsed.timestamp) / 1000 / 60);
+                    result += `\nCache Age: ${cacheAge} minutes (${Math.floor(cacheAge / 60)} hours)\n`;
+                    
+                } catch (e) {
+                    result += `❌ Error parsing cache: ${e.message}\n`;
+                }
+            } else {
+                result += '❌ No cached data found in localStorage\n';
+            }
+            
+            output.textContent = result;
+        }
+        
+        function analyzeBurnsByDay() {
+            const output = document.getElementById('output');
+            let result = '=== BURNS BY DAY ANALYSIS ===\n\n';
+            
+            const cachedData = localStorage.getItem('total-burned-steem-data');
+            if (!cachedData) {
+                result += '❌ No cached data found!\n';
+                output.textContent = result;
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(cachedData);
+                if (!parsed.burnsByDay || Object.keys(parsed.burnsByDay).length === 0) {
+                    result += '❌ No burnsByDay data available!\n';
+                    output.textContent = result;
+                    return;
+                }
+                
+                const burnDays = Object.keys(parsed.burnsByDay)
+                    .map(ts => ({
+                        timestamp: parseInt(ts),
+                        burns: parsed.burnsByDay[ts]
+                    }))
+                    .sort((a, b) => a.timestamp - b.timestamp);
+                
+                result += `Total days with burns: ${burnDays.length}\n\n`;
+                
+                result += '📊 FIRST 10 DAYS:\n';
+                burnDays.slice(0, 10).forEach(day => {
+                    const date = new Date(day.timestamp * 1000).toLocaleDateString();
+                    result += `  ${date}: ${day.burns.toFixed(2)} STEEM\n`;
+                });
+                
+                result += '\n📊 LAST 10 DAYS:\n';
+                burnDays.slice(-10).forEach(day => {
+                    const date = new Date(day.timestamp * 1000).toLocaleDateString();
+                    result += `  ${date}: ${day.burns.toFixed(2)} STEEM\n`;
+                });
+                
+                // Find days with most burns
+                const topDays = [...burnDays].sort((a, b) => b.burns - a.burns).slice(0, 5);
+                result += '\n🔥 TOP 5 BURN DAYS:\n';
+                topDays.forEach(day => {
+                    const date = new Date(day.timestamp * 1000).toLocaleDateString();
+                    result += `  ${date}: ${day.burns.toFixed(2)} STEEM\n`;
+                });
+                
+                // Verify graph data would be accurate
+                result += '\n✅ GRAPH ACCURACY CHECK:\n';
+                result += 'X-axis (Timeline): ';
+                const dateRange = burnDays.length > 0 ? 
+                    `${new Date(burnDays[0].timestamp * 1000).toLocaleDateString()} to ${new Date(burnDays[burnDays.length - 1].timestamp * 1000).toLocaleDateString()}` 
+                    : 'N/A';
+                result += `${dateRange}\n`;
+                
+                result += 'Y-axis (STEEM Burned): ';
+                const minBurn = Math.min(...burnDays.map(d => d.burns));
+                const maxBurn = Math.max(...burnDays.map(d => d.burns));
+                result += `Range from ${minBurn.toFixed(2)} to ${maxBurn.toFixed(2)} STEEM\n`;
+                
+                result += '\n✅ Data structure is valid for graphing!\n';
+                
+            } catch (e) {
+                result += `❌ Error: ${e.message}\n`;
+            }
+            
+            output.textContent = result;
+        }
+        
+        function clearAllCache() {
+            localStorage.removeItem('total-burned-steem-data');
+            if (window.burnpoolCompleteData) {
+                delete window.burnpoolCompleteData;
+            }
+            document.getElementById('output').textContent = '✅ All cache cleared! Refresh the main app to recalculate.';
+        }
+    </script>
+</body>
+</html>

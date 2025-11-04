@@ -214,67 +214,37 @@ export async function fetchBurnPoolContributors() {
 
 // Separate function for fetching STEEM Power data only (fast)
 export async function fetchBurnPoolSteemPower() {
-  const burnPoolAccount = 'dhaka.witness'; // For STEEM Power and profile data
+  const burnPoolAccount = 'global-steem'; // For STEEM Power and profile data
   
   try {
-    // Use SteemWorld API as specified in original code
-    const response = await fetch(`https://sds0.steemworld.org/accounts_api/getAccount/${burnPoolAccount}`);
+    // Fetch Effective STEEM Power from the ESP API
+    const espResponse = await fetch(`https://api.justyy.workers.dev/api/steemit/account/esp/?cached&id=${burnPoolAccount}`);
     
-    if (!response.ok) {
-      throw new Error(`API response not ok: ${response.status}`);
+    if (!espResponse.ok) {
+      throw new Error(`ESP API response not ok: ${espResponse.status}`);
     }
     
-    const apiResponse = await response.json();
+    const steemPower = await espResponse.json();
     
-    let steemPower = 0;
+    // Fetch profile image from SteemWorld API
     let profileImage = `https://steemitimages.com/u/${burnPoolAccount}/avatar`;
     
-    if (apiResponse && apiResponse.result && apiResponse.result.vesting_shares) {
-      const accountData = apiResponse.result;
+    try {
+      const response = await fetch(`https://sds0.steemworld.org/accounts_api/getAccount/${burnPoolAccount}`);
       
-      // Get global properties for VESTS conversion
-      const globalResp = await fetch('https://api.steemit.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'condenser_api.get_dynamic_global_properties',
-          params: [],
-          id: 1
-        })
-      });
-      
-      const globalData = await globalResp.json();
-      
-      if (globalData && globalData.result) {
-        const totalVestingShares = parseFloat(globalData.result.total_vesting_shares.split(' ')[0]);
-        const totalVestingFundSteem = parseFloat(globalData.result.total_vesting_fund_steem.split(' ')[0]);
+      if (response.ok) {
+        const apiResponse = await response.json();
         
-        // Convert VESTS to STEEM Power - EXACT same calculation as original
-        const userVests = parseFloat(accountData.vesting_shares);
-        steemPower = (userVests / totalVestingShares) * totalVestingFundSteem;
-        
-    // Console log removed
-        
-        // Get profile image from the API response - EXACT same logic as original
-        try {
-          if (accountData.posting_json_metadata) {
-            const metadata = JSON.parse(accountData.posting_json_metadata);
-            if (metadata.profile && metadata.profile.profile_image) {
-              profileImage = metadata.profile.profile_image;
-    // Console log removed
-            }
+        if (apiResponse && apiResponse.result && apiResponse.result.posting_json_metadata) {
+          const accountData = apiResponse.result;
+          const metadata = JSON.parse(accountData.posting_json_metadata);
+          if (metadata.profile && metadata.profile.profile_image) {
+            profileImage = metadata.profile.profile_image;
           }
-        } catch (e) {
-    // Console log removed
         }
-        
-    // Console log removed
-      } else {
-        throw new Error('Failed to get global properties');
       }
-    } else {
-      throw new Error('Invalid account data - missing vesting_shares');
+    } catch (e) {
+      // Keep default profile image if fetch fails
     }
     
     return {

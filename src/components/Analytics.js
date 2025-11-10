@@ -97,12 +97,6 @@ const Analytics = () => {
       }
     }
     
-    // Debug: Log the monthly data to see what's included
-    console.log('Monthly aggregated data for All Time view:', result.map(item => ({
-      date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
-      burns: item.burns
-    })));
-    
     return result.sort((a, b) => a.timestamp - b.timestamp);
   };
 
@@ -186,21 +180,6 @@ const Analytics = () => {
         timeframeCutoff = now - (daysBack * 24 * 60 * 60);
       }
       
-      // Debug: Log current time and cutoff
-      console.log(`=== ${activeTimeframe.toUpperCase()} TIMEFRAME DEBUG ===`);
-      console.log('Current timestamp:', now, '=', new Date(now * 1000).toISOString());
-      console.log('Days back:', daysBack);
-      console.log('Cutoff timestamp:', timeframeCutoff, '=', timeframeCutoff > 0 ? new Date(timeframeCutoff * 1000).toISOString() : 'No cutoff (all data)');
-      
-      // Debug: Log all available dates in the raw data first
-      const allAvailableDates = Object.keys(burnPoolData.burnsByDay).map(ts => parseInt(ts)).sort((a, b) => a - b);
-      console.log('Total burn days available:', allAvailableDates.length);
-      if (allAvailableDates.length > 0) {
-        console.log('Earliest burn date:', new Date(allAvailableDates[0] * 1000).toISOString().split('T')[0]);
-        console.log('Latest burn date:', new Date(allAvailableDates[allAvailableDates.length - 1] * 1000).toISOString().split('T')[0]);
-        console.log('Last 5 burn dates:', allAvailableDates.slice(-5).map(ts => new Date(ts * 1000).toISOString().split('T')[0]));
-      }
-      
       // Get and sort burn data for the timeframe
       let filteredData = Object.keys(burnPoolData.burnsByDay)
         .map(timestamp => ({
@@ -218,8 +197,6 @@ const Analytics = () => {
         
         // If the last data point is before today, add zero-value points to today
         if (lastDataPoint < todayMidnight) {
-          console.log(`Filling gap from ${new Date(lastDataPoint * 1000).toISOString().split('T')[0]} to today`);
-          
           // For 7d and 30d, fill daily
           if (activeTimeframe === '7d' || activeTimeframe === '30d') {
             let currentDay = lastDataPoint + 86400; // Next day after last data
@@ -232,53 +209,15 @@ const Analytics = () => {
           // For 'all', we'll let the monthly aggregation handle it
         }
       }
-
-      // Debug: Log raw filtered data before aggregation
-      console.log('Raw filtered data count:', filteredData.length);
-      console.log('Date range in raw data:', 
-        filteredData.length > 0 ? {
-          earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
-          latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
-        } : 'No data');
-      
-      // Debug: Show last few days in raw filtered data
-      if (filteredData.length > 0) {
-        console.log('Last 3 raw filtered dates:', filteredData.slice(-3).map(item => ({
-          date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
-          burns: item.burns
-        })));
-      }
         
       // Apply data aggregation based on timeframe for better visualization
       filteredData = aggregateDataForTimeframe(filteredData, activeTimeframe);
-      
-      // Debug: Log data after aggregation
-      console.log('After aggregation - data count:', filteredData.length);
-      if (filteredData.length > 0) {
-        console.log('After aggregation - date range:', {
-          earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
-          latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
-        });
-        console.log('Last 3 aggregated dates:', filteredData.slice(-3).map(item => ({
-          date: new Date(item.timestamp * 1000).toISOString().split('T')[0],
-          burns: item.burns
-        })));
-      }
 
       // For specific timeframes, ensure we don't exceed the requested period
       if (daysBack > 0 && filteredData.length > daysBack) {
         // Take the most recent data points within the timeframe
-        const originalLength = filteredData.length;
         const maxPoints = Math.ceil(daysBack / (activeTimeframe === '90d' ? 7 : activeTimeframe === 'all' ? 30 : 1));
         filteredData = filteredData.slice(-maxPoints);
-        
-        console.log(`Data slicing: ${originalLength} -> ${filteredData.length} (max ${maxPoints} for ${activeTimeframe})`);
-        if (filteredData.length > 0) {
-          console.log('After slicing - final date range:', {
-            earliest: new Date(filteredData[0].timestamp * 1000).toISOString().split('T')[0],
-            latest: new Date(filteredData[filteredData.length - 1].timestamp * 1000).toISOString().split('T')[0]
-          });
-        }
       }
 
       // Using real blockchain data

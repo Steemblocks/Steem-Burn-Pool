@@ -418,7 +418,7 @@ export async function fetchBurnPoolData() {
 }
 
 async function calculateTotalBurned(progressCallback = null) {
-  const burnTrackingAccount = 'oswaldocuarta'; // For tracking burns to @null (optimized scan from 2025)
+  const burnTrackingAccount = 'steemburnup'; // For tracking burns to @null (optimized scan from 2025)
   let totalBurned = 0;
   let found = 0;
   let lastBurnTimestamp = 0;

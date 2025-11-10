@@ -64,7 +64,7 @@ const ConstructionPopup = () => {
                 <i className="fas fa-user-circle"></i>
                 <div className="account-info">
                   <span className="account-label">Burn Account:</span>
-                  <span className="account-name">@oswaldocuarta</span>
+                  <span className="account-name">@steemburnup</span>
                 </div>
               </div>
               <div className="account-item">

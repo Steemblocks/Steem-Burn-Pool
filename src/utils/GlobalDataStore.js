@@ -14,7 +14,7 @@ class GlobalDataStore {
       burnsToday: null,
       steemPower: null,
       profileImage: null,
-      account: 'global-steem',
+      account: 'steemburnpool',
       lastUpdated: null
     },
     contributorsData: {

@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import TabNavigation from './components/TabNavigation';
-import ConstructionPopup from './components/ConstructionPopup';
 import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import RoadmapPage from './pages/RoadmapPage';
@@ -45,9 +44,6 @@ function App() {
             <Route path="/delegate" element={<DelegationPage />} />
           </Routes>
         </div>
-        
-        {/* Construction Popup */}
-        <ConstructionPopup />
       </div>
     </Router>
   );

@@ -112,21 +112,22 @@ body {
   transform: scale(1.1) !important;
 }
 
-/* STEEM Power value should be green by default */
+/* STEEM Power value should be green by default with same animations */
 .burnpool-steempower-value,
 .burnpool-burned-card .burnpool-steempower-value,
 .burnpool-account-card .burnpool-steempower-value {
   color: #19e68c !important;
-  cursor: default !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Remove hover effect for STEEM Power values */
+/* Same hover effect for STEEM Power values as Total Burned */
 .burnpool-steempower-value:hover,
 .burnpool-burned-card .burnpool-steempower-value:hover,
 .burnpool-account-card .burnpool-steempower-value:hover {
   color: #19e68c !important;
-  text-shadow: none !important;
-  transform: none !important;
+  text-shadow: 0 0 10px rgba(25, 230, 140, 0.3) !important;
+  transform: scale(1.1) !important;
 }
 
 body {

@@ -1,5 +1,5 @@
 // Application configuration constants
-export const STEEM_BURN_POOL_ACCOUNT = 'global-steem';
+export const STEEM_BURN_POOL_ACCOUNT = 'steemburnpool';
 
 export const API_ENDPOINTS = {
   STEEM_WORLD_DELEGATIONS: 'https://sds0.steemworld.org/delegations_api/getIncomingDelegations',

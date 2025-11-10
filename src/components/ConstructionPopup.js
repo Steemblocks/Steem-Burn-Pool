@@ -71,7 +71,7 @@ const ConstructionPopup = () => {
                 <i className="fas fa-server"></i>
                 <div className="account-info">
                   <span className="account-label">Burn Pool Witness:</span>
-                  <span className="account-name">@global-steem</span>
+                  <span className="account-name">@steemburnpool</span>
                 </div>
               </div>
             </div>

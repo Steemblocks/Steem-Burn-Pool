@@ -96,7 +96,7 @@ const Delegation = () => {
         // Direct call to Steem Keychain only
         window.steem_keychain.requestDelegation(
           keychainUsername || null, // username - use specified account or let user choose
-          'global-steem',         // delegatee - Burn Pool Steem Power account
+          'steemburnpool',         // delegatee - Burn Pool Steem Power account
           formattedAmount,         // amount as string with 3 decimals
           'SP',                   // unit
           (response) => {         // callback function
@@ -121,39 +121,6 @@ const Delegation = () => {
         reject(new Error(`Steem Keychain error: ${error.message}`));
       }
     });
-  };
-
-  // Test function - Steem Keychain only
-  const testKeychainDelegation = () => {
-        // Console log removed
-    
-    if (!window.steem_keychain) {
-      alert('❌ Steem Keychain not available - make sure you installed the STEEM KEYCHAIN extension (not MetaMask or other wallets)');
-      return;
-    }
-    
-    if (typeof window.steem_keychain.requestDelegation !== 'function') {
-      alert('❌ Steem Keychain detected but requestDelegation method not available');
-      return;
-    }
-    
-        // Console log removed
-    
-    try {
-      window.steem_keychain.requestDelegation(
-        null,           // username
-        'global-steem', // delegatee
-        '1.000',        // amount
-        'SP',           // unit
-        (response) => {
-        // Console log removed
-          alert(`✅ Test successful: ${JSON.stringify(response, null, 2)}`);
-        }
-      );
-    } catch (error) {
-        // Console log removed
-      alert(`❌ Test error: ${error.message}`);
-    }
   };
 
   // Add separate handlers for each delegation method
@@ -213,14 +180,14 @@ const Delegation = () => {
       
       const delegationData = {
         delegator: steemloginUsername,
-        delegatee: 'global-steem',
+        delegatee: 'steemburnpool',
         vesting_shares: `${vestsAmount.toFixed(6)} VESTS`,
       };
       
       const steemLoginUrl = `https://steemlogin.com/sign/delegate_vesting_shares?${new URLSearchParams(delegationData).toString()}`;
       window.open(steemLoginUrl, '_blank');
       
-      alert(`Opening SteemLogin in new tab. Please complete your delegation of ${steemloginAmount} SP (${vestsAmount.toFixed(6)} VESTS) to @global-steem`);
+      alert(`Opening SteemLogin in new tab. Please complete your delegation of ${steemloginAmount} SP (${vestsAmount.toFixed(6)} VESTS) to @steemburnpool`);
       setSteemloginAmount('');
       setSteemloginUsername('');
     } catch (error) {
@@ -483,78 +450,6 @@ const Delegation = () => {
             </div>
           </div>
         </div>
-
-        {/* Debug section for Keychain troubleshooting */}
-        {isKeychainAvailable && (
-          <div style={{
-            marginTop: '20px',
-            padding: '15px',
-            background: 'rgba(0, 123, 255, 0.1)',
-            border: '1px solid rgba(0, 123, 255, 0.3)',
-            borderRadius: '8px'
-          }}>
-            <h4 style={{color: '#007bff', marginBottom: '10px', fontSize: '14px'}}>
-              <i className="fas fa-bug"></i> Debug Info
-            </h4>
-            <div style={{fontSize: '12px', color: '#6c757d'}}>
-              <p>Keychain Status: {isKeychainAvailable ? '✅ Available' : '❌ Not Available'}</p>
-              <p>Window.steem_keychain: {window.steem_keychain ? '✅ Present' : '❌ Missing'}</p>
-              <p>RequestDelegation Method: {window.steem_keychain?.requestDelegation ? '✅ Available' : '❌ Missing'}</p>
-            </div>
-            <button 
-              type="button"
-              onClick={() => {
-        // Console log removed
-        // Console log removed
-        // Console log removed
-                
-                if (window.steem_keychain) {
-                  if (window.steem_keychain.requestHandshake) {
-        // Console log removed
-                    window.steem_keychain.requestHandshake((result) => {
-        // Console log removed
-                      const resultText = result !== undefined ? JSON.stringify(result) : 'undefined (this is normal for some Keychain versions)';
-                      alert(`Keychain handshake result: ${resultText}\n\nKeychain is working if this popup appeared!`);
-                    });
-                  } else {
-                    alert('Keychain detected but requestHandshake method not available.\nThis is normal - Keychain should still work for delegation.');
-                  }
-                } else {
-                  alert('Keychain not detected. Please install and refresh the page.');
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                marginTop: '10px'
-              }}
-            >
-              Test Keychain Connection
-            </button>
-            <button 
-              type="button"
-              onClick={testKeychainDelegation}
-              style={{
-                padding: '8px 16px',
-                background: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                marginTop: '10px',
-                marginLeft: '10px'
-              }}
-            >
-              Test Delegation (1 SP)
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="delegation-placeholder">

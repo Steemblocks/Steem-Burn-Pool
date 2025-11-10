@@ -31,7 +31,7 @@ const InvitationCard = ({
             className="btn-learn-more"
             onClick={() => {
               // Open Steemit profile in new tab
-              window.open('https://steemit.com/@global-steem', '_blank');
+              window.open('https://steemit.com/@steemburnpool', '_blank');
             }}
           >
             <i className="fas fa-external-link-alt"></i>

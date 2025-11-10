@@ -212,39 +212,78 @@ export async function fetchBurnPoolContributors() {
   }
 }
 
-// Separate function for fetching STEEM Power data only (fast)
+// Separate function for fetching STEEM Power data only (fast and live)
 export async function fetchBurnPoolSteemPower() {
-  const burnPoolAccount = 'global-steem'; // For STEEM Power and profile data
+  const burnPoolAccount = 'steemburnpool'; // For STEEM Power and profile data
   
   try {
-    // Fetch Effective STEEM Power from the ESP API
-    const espResponse = await fetch(`https://api.justyy.workers.dev/api/steemit/account/esp/?cached&id=${burnPoolAccount}`);
+    // Fetch account data using condenser_api.get_accounts
+    const accountResponse = await fetch('https://api.steemit.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'condenser_api.get_accounts',
+        params: [[burnPoolAccount]],
+        id: 1
+      })
+    });
     
-    if (!espResponse.ok) {
-      throw new Error(`ESP API response not ok: ${espResponse.status}`);
+    if (!accountResponse.ok) {
+      throw new Error(`Account API response not ok: ${accountResponse.status}`);
     }
     
-    const steemPower = await espResponse.json();
+    const accountData = await accountResponse.json();
     
-    // Fetch profile image from SteemWorld API
+    if (!accountData.result || accountData.result.length === 0) {
+      throw new Error('Account not found');
+    }
+    
+    const account = accountData.result[0];
+    
+    // Get global properties for VESTS conversion
+    const globalResponse = await fetch('https://api.steemit.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'condenser_api.get_dynamic_global_properties',
+        params: [],
+        id: 1
+      })
+    });
+    
+    const globalData = await globalResponse.json();
+    
+    if (!globalData.result) {
+      throw new Error('Failed to get global properties');
+    }
+    
+    // Calculate VESTS to STEEM conversion rate
+    const totalVestingShares = parseFloat(globalData.result.total_vesting_shares.split(' ')[0]);
+    const totalVestingFundSteem = parseFloat(globalData.result.total_vesting_fund_steem.split(' ')[0]);
+    const steemPerVest = totalVestingFundSteem / totalVestingShares;
+    
+    // Calculate Effective STEEM Power
+    const vestingShares = parseFloat(account.vesting_shares.split(' ')[0]);
+    const receivedVestingShares = parseFloat(account.received_vesting_shares.split(' ')[0]);
+    const delegatedVestingShares = parseFloat(account.delegated_vesting_shares.split(' ')[0]);
+    
+    // Effective VESTS = Own VESTS + Received VESTS - Delegated VESTS
+    const effectiveVests = vestingShares + receivedVestingShares - delegatedVestingShares;
+    const steemPower = effectiveVests * steemPerVest;
+    
+    // Get profile image
     let profileImage = `https://steemitimages.com/u/${burnPoolAccount}/avatar`;
-    
     try {
-      const response = await fetch(`https://sds0.steemworld.org/accounts_api/getAccount/${burnPoolAccount}`);
-      
-      if (response.ok) {
-        const apiResponse = await response.json();
-        
-        if (apiResponse && apiResponse.result && apiResponse.result.posting_json_metadata) {
-          const accountData = apiResponse.result;
-          const metadata = JSON.parse(accountData.posting_json_metadata);
-          if (metadata.profile && metadata.profile.profile_image) {
-            profileImage = metadata.profile.profile_image;
-          }
+      if (account.posting_json_metadata) {
+        const metadata = JSON.parse(account.posting_json_metadata);
+        if (metadata.profile && metadata.profile.profile_image) {
+          profileImage = metadata.profile.profile_image;
         }
       }
     } catch (e) {
-      // Keep default profile image if fetch fails
+      // Keep default profile image
     }
     
     return {

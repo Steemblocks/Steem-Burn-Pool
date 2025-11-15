@@ -4203,7 +4203,7 @@ p.subtitle {
 /* Responsive Design for About Page */
 @media (max-width: 768px) {
   .about-container {
-    padding: var(--gap-medium) var(--gap-small);
+    padding: 0;
     gap: var(--gap-medium);
   }
 
@@ -4245,7 +4245,7 @@ p.subtitle {
 
 @media (max-width: 480px) {
   .about-container {
-    padding: var(--gap-small) 8px;
+    padding: 0;
   }
 
   .about-header {

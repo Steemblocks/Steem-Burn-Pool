@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import TabNavigation from './components/TabNavigation';
+import Footer from './components/Footer';
 import DashboardPage from './pages/DashboardPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import RoadmapPage from './pages/RoadmapPage';
 import DelegationPage from './pages/DelegationPage';
+import AboutPage from './pages/AboutPage';
 import CacheManager from './utils/CacheManager';
 import GlobalDataStore from './utils/GlobalDataStore';
 import { fetchSteemData } from './services/steemApi';
@@ -42,8 +44,11 @@ function App() {
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/roadmap" element={<RoadmapPage />} />
             <Route path="/delegate" element={<DelegationPage />} />
+            <Route path="/about" element={<AboutPage />} />
           </Routes>
         </div>
+
+        <Footer />
       </div>
     </Router>
   );

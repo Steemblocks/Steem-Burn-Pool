@@ -8,7 +8,8 @@ const TabNavigation = () => {
     { id: 'dashboard', path: '/', icon: 'fas fa-home', label: 'Dashboard' },
     { id: 'analytics', path: '/analytics', icon: 'fas fa-chart-bar', label: 'Analytics' },
     { id: 'roadmap', path: '/roadmap', icon: 'fas fa-road', label: 'Roadmap' },
-    { id: 'delegation', path: '/delegate', icon: 'fas fa-hand-holding-usd', label: 'Delegate' }
+    { id: 'delegation', path: '/delegate', icon: 'fas fa-hand-holding-usd', label: 'Delegate' },
+    { id: 'about', path: '/about', icon: 'fas fa-info-circle', label: 'About' }
   ];
 
   return (

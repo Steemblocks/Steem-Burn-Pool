@@ -1107,7 +1107,7 @@
   
   .burnpool-cards-section {
     gap: clamp(14px, 2vw, 20px);
-    max-width: 700px;
+    max-width: calc(100% - 0px); /* Use 100% width for tablet - no max-width constraint */
   }
   
   .burnpool-burned-card {
@@ -1143,7 +1143,7 @@
     grid-template-columns: 1fr;
     gap: clamp(12px, 1.8vw, 16px);
     margin-bottom: clamp(12px, 1.5vw, 16px);
-    max-width: 400px;
+    max-width: calc(100% - 0px); /* Use 100% width for mobile - removes fixed max-width that was causing right padding */
   }
   
   .burnpool-burned-card {
